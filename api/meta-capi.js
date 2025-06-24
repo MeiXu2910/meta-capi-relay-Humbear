@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     event_time,
     event_source_url,
     action_source,
-  } = req.body;
+  } = req.body.customData || {};
   if (!event_name) {
     return res.status(400).json({ error: "Missing required field: event_name" });
   }
