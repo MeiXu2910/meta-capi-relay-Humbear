@@ -11,18 +11,16 @@ export default async function handler(req, res) {
   }
 
   const {
-    customData: {
-      em,
-      ph,
-      event_name,
-      event_time,
-      event_source_url,
-      action_source,
-    } = {}
+    em,
+    ph,
+    event_name,
+    event_time,
+    event_source_url,
+    action_source,
   } = req.body;
   if (!event_name) {
-  return res.status(400).json({ error: "Missing required field: event_name" });
-}
+    return res.status(400).json({ error: "Missing required field: event_name" });
+  }
 
   const pixel_id = '1453717848975586';
   const access_token = 'EAAUQrscohwYBO3KfUYftAXthoAWSh2xur5y5MvK3LXcGCEwhJfrmDjmlmUTijmSdMQSa00tewd363ZCdTFZA47Sl8kzpPrlOsCZAHr4tsXba87gq62of0cQ6ZAJIRtUP8QxWCMg8cJ667enKMbVqhqChNgZCNH5EZBmkjzPdwNADhQv1md40wEFiCB5r8ZCqKWHTwZDZD';
