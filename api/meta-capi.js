@@ -30,7 +30,7 @@ export default async function handler(req, res) {
     data: [
       {
         event_name,
-        event_time,
+        event_time: parseInt(event_time || Date.now() / 1000),
         event_source_url,
         action_source: action_source || 'website', // 默认设置一下，避免为空
         user_data: {
