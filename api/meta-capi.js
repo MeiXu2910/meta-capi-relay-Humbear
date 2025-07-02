@@ -25,6 +25,13 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Missing required field: event_name" });
   }
 
+  // ✅ 只添加有值的字段，避免空数组
+  const user_data = {};
+  if (em) user_data.em = [hashSHA256(em)];
+  if (ph) user_data.ph = [hashSHA256(ph)];
+  if (fbp) user_data.fbp = [fbp];
+  if (fbc) user_data.fbc = [fbc];
+
   const pixel_id = '1453717848975586';
   const access_token = 'EAAUQrscohwYBO3KfUYftAXthoAWSh2xur5y5MvK3LXcGCEwhJfrmDjmlmUTijmSdMQSa00tewd363ZCdTFZA47Sl8kzpPrlOsCZAHr4tsXba87gq62of0cQ6ZAJIRtUP8QxWCMg8cJ667enKMbVqhqChNgZCNH5EZBmkjzPdwNADhQv1md40wEFiCB5r8ZCqKWHTwZDZD';
   const url = `https://graph.facebook.com/v19.0/${pixel_id}/events?access_token=${access_token}`;
@@ -36,12 +43,7 @@ export default async function handler(req, res) {
         event_time: parseInt(event_time || Date.now() / 1000),
         event_source_url,
         action_source: action_source || 'website',
-        user_data: {
-          em: em ? [hashSHA256(em)] : [],
-          ph: ph ? [hashSHA256(ph)] : [],
-          fbp: fbp ? [fbp] : [],
-          fbc: fbc ? [fbc] : [],
-        },
+        user_data,
       },
     ],
   };
@@ -58,16 +60,17 @@ export default async function handler(req, res) {
     const result = await response.json();
 
     if (!response.ok) {
-      console.error('❌ Meta API returned error:', result);  
+      console.error('❌ Meta API returned error:', result);
       return res.status(response.status).json({ error: result });
     }
 
     return res.status(200).json({ success: true, result });
   } catch (error) {
-    console.error('❌ Error in meta-capi relay:', error); 
+    console.error('❌ Error in meta-capi relay:', error);
     return res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 }
+
 
 
 
