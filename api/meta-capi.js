@@ -13,6 +13,8 @@ export default async function handler(req, res) {
   const {
     em,
     ph,
+    fbp,
+    fbc,
     event_name,
     event_time,
     event_source_url,
@@ -36,6 +38,8 @@ export default async function handler(req, res) {
         user_data: {
           em: [hashSHA256(em || '')],
           ph: [hashSHA256(ph || '')],
+          fbp: [fbp || ''],
+          fbc: [fbc || '']
         },
       },
     ],
