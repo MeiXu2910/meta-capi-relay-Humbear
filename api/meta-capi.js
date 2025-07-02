@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import crypto from 'crypto'; // ✅ 加这一行用于加密
+import crypto from 'crypto';
 
 function hashSHA256(value) {
   return crypto.createHash('sha256').update(value.trim().toLowerCase()).digest('hex');
@@ -20,6 +20,7 @@ export default async function handler(req, res) {
     event_source_url,
     action_source,
   } = req.body.customData || {};
+
   if (!event_name) {
     return res.status(400).json({ error: "Missing required field: event_name" });
   }
@@ -34,12 +35,12 @@ export default async function handler(req, res) {
         event_name,
         event_time: parseInt(event_time || Date.now() / 1000),
         event_source_url,
-        action_source: action_source || 'website', // 默认设置一下，避免为空
+        action_source: action_source || 'website',
         user_data: {
-          em: [hashSHA256(em || '')],
-          ph: [hashSHA256(ph || '')],
-          fbp: [fbp || ''],
-          fbc: [fbc || '']
+          em: em ? [hashSHA256(em)] : [],
+          ph: ph ? [hashSHA256(ph)] : [],
+          fbp: fbp ? [fbp] : [],
+          fbc: fbc ? [fbc] : [],
         },
       },
     ],
@@ -57,11 +58,13 @@ export default async function handler(req, res) {
     const result = await response.json();
 
     if (!response.ok) {
+      console.error('❌ Meta API returned error:', result);  
       return res.status(response.status).json({ error: result });
     }
 
     return res.status(200).json({ success: true, result });
   } catch (error) {
+    console.error('❌ Error in meta-capi relay:', error); 
     return res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 }
