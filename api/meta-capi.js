@@ -6,8 +6,20 @@ function hashSHA256(value) {
 }
 
 export default async function handler(req, res) {
+  // ✅ 打印请求体和请求头
+  console.log("📥 Incoming Request Body:", req.body);
+  console.log("📥 Headers:", req.headers);
+
+  // ✅ 只接受 POST 方法
   if (req.method !== 'POST') {
+    console.error("❌ Method not allowed");
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // ✅ 校验 customData 是否存在
+  if (!req.body || !req.body.customData) {
+    console.error("❌ Missing customData in request body");
+    return res.status(400).json({ error: "Missing customData in request body" });
   }
 
   const {
@@ -19,13 +31,15 @@ export default async function handler(req, res) {
     event_time,
     event_source_url,
     action_source,
-  } = req.body.customData || {};
+  } = req.body.customData;
 
+  // ✅ 校验必要字段
   if (!event_name) {
+    console.error("❌ Missing required field: event_name");
     return res.status(400).json({ error: "Missing required field: event_name" });
   }
 
-  // ✅ 只添加有值的字段，避免空数组
+  // ✅ 构造用户数据
   const user_data = {};
   if (em) user_data.em = [hashSHA256(em)];
   if (ph) user_data.ph = [hashSHA256(ph)];
@@ -64,6 +78,7 @@ export default async function handler(req, res) {
       return res.status(response.status).json({ error: result });
     }
 
+    // ✅ 成功响应
     return res.status(200).json({ success: true, result });
   } catch (error) {
     console.error('❌ Error in meta-capi relay:', error);
