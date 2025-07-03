@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     console.log("📥 GHL Parsed Body:", body);
   } catch (err) {
     console.error("❌ GHL JSON Parse Error:", err.message);
-    return res.status(400).json({ error: 'Invalid JSON' });
+    return res.status(400).json({ "CAPI Status": "Failed", error: 'Invalid JSON' }); // ✅ 改1
   }
 
   const {
@@ -39,8 +39,9 @@ export default async function handler(req, res) {
     event_source_url,
     action_source,
   } = body.customData || {}; 
+
   if (!event_name) {
-    return res.status(400).json({ error: 'Missing required field: event_name' });
+    return res.status(400).json({ "CAPI Status": "Failed", error: 'Missing required field: event_name' }); // ✅ 改2
   }
 
   const user_data = {};
@@ -75,12 +76,12 @@ export default async function handler(req, res) {
     const result = await response.json();
 
     if (!response.ok) {
-      return res.status(response.status).json({ error: result });
+      return res.status(response.status).json({ "CAPI Status": "Failed", error: result }); // ✅ 改3
     }
 
-    return res.status(200).json({ success: true, result });
+    return res.status(200).json({ "CAPI Status": "Success", result }); // ✅ 改4
   } catch (err) {
     console.error("❌ GHL Relay Error:", err);
-    return res.status(500).json({ error: 'Internal Server Error', detail: err.message });
+    return res.status(500).json({ "CAPI Status": "Failed", error: 'Internal Server Error', detail: err.message }); // ✅ 改5
   }
 }
