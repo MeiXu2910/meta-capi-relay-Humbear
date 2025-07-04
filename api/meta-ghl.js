@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import crypto from 'crypto'; // ✅ 加这一行用于加密
+import crypto from 'crypto';
 
 function hashSHA256(value) {
   return crypto.createHash('sha256').update(value.trim().toLowerCase()).digest('hex');
@@ -18,13 +18,15 @@ export default async function handler(req, res) {
     event_source_url,
     action_source,
   } = req.body.customData || {};
+
   if (!event_name) {
     return res.status(400).json({ error: "Missing required field: event_name" });
   }
 
   const pixel_id = '1453717848975586';
   const access_token = 'EAAUQrscohwYBO3KfUYftAXthoAWSh2xur5y5MvK3LXcGCEwhJfrmDjmlmUTijmSdMQSa00tewd363ZCdTFZA47Sl8kzpPrlOsCZAHr4tsXba87gq62of0cQ6ZAJIRtUP8QxWCMg8cJ667enKMbVqhqChNgZCNH5EZBmkjzPdwNADhQv1md40wEFiCB5r8ZCqKWHTwZDZD';
-  const url = https://graph.facebook.com/v19.0/${pixel_id}/events?access_token=${access_token};
+
+  const url = `https://graph.facebook.com/v19.0/${pixel_id}/events?access_token=${access_token}`;
 
   const payload = {
     data: [
@@ -32,7 +34,7 @@ export default async function handler(req, res) {
         event_name,
         event_time: parseInt(event_time || Date.now() / 1000),
         event_source_url,
-        action_source: action_source || 'website', // 默认设置一下，避免为空
+        action_source: action_source || 'website',
         user_data: {
           em: [hashSHA256(em || '')],
           ph: [hashSHA256(ph || '')],
@@ -61,3 +63,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 }
+
