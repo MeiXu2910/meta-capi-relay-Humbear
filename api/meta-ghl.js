@@ -38,8 +38,7 @@ export default async function handler(req, res) {
     event_time,
     event_source_url,
     action_source,
-  } = body.customData || {}; 
-
+  } = body.customData || body || {};
   if (!event_name) {
     return res.status(400).json({ "CAPI Status": "Failed", error: 'Missing required field: event_name' }); // ✅ 改2
   }
