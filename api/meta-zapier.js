@@ -58,7 +58,7 @@ export default async function handler(req, res) {
   if (fbc) user_data.fbc = [fbc];
 
   const pixel_id = '1453717848975586';
-  const access_token = 'EAAUQrs...'; // 建议用环境变量隐藏
+  const access_token = 'EAAUQrscohwYBO3KfUYftAXthoAWSh2xur5y5MvK3LXcGCEwhJfrmDjmlmUTijmSdMQSa00tewd363ZCdTFZA47Sl8kzpPrlOsCZAHr4tsXba87gq62of0cQ6ZAJIRtUP8QxWCMg8cJ667enKMbVqhqChNgZCNH5EZBmkjzPdwNADhQv1md40wEFiCB5r8ZCqKWHTwZDZD'; // 建议用环境变量隐藏
   const url = `https://graph.facebook.com/v19.0/${pixel_id}/events?access_token=${access_token}`;
 
   const payload = {
