@@ -13,6 +13,12 @@ export default async function handler(req, res) {
   const {
     em,
     ph,
+    fn,
+    ln,
+    fbc,
+    fbp,
+    client_ip_address,
+    client_user_agent,
     event_name,
     event_time,
     event_source_url,
@@ -36,8 +42,14 @@ export default async function handler(req, res) {
         event_source_url,
         action_source: action_source || 'website',
         user_data: {
-          em: [hashSHA256(em || '')],
-          ph: [hashSHA256(ph || '')],
+          em: em ? [hashSHA256(em)] : undefined,
+          ph: ph ? [hashSHA256(ph)] : undefined,
+          fn: fn ? [hashSHA256(fn)] : undefined,
+          ln: ln ? [hashSHA256(ln)] : undefined,
+          fbc: fbc || undefined,
+          fbp: fbp || undefined,
+          client_ip_address: client_ip_address || undefined,
+          client_user_agent: client_user_agent || undefined,
         },
       },
     ],
@@ -46,9 +58,7 @@ export default async function handler(req, res) {
   try {
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
 
@@ -63,4 +73,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 }
+
 
