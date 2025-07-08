@@ -34,6 +34,22 @@ export default async function handler(req, res) {
 
   const url = `https://graph.facebook.com/v19.0/${pixel_id}/events?access_token=${access_token}`;
 
+  const user_data = {};
+  if (em) user_data.em = [hashSHA256(em)];
+  if (ph) user_data.ph = [hashSHA256(ph)];
+  if (fn) user_data.fn = [hashSHA256(fn)];
+  if (ln) user_data.ln = [hashSHA256(ln)];
+  if (fbc) user_data.fbc = fbc;
+  if (fbp) user_data.fbp = fbp;
+  if (client_ip_address) user_data.client_ip_address = client_ip_address;
+  if (client_user_agent) user_data.client_user_agent = client_user_agent;
+
+  if (Object.keys(user_data).length === 0) {
+    return res.status(400).json({
+      error: 'Missing valid user data. Please provide at least one identifier such as email, phone, fbc, or fbp.',
+    });
+  }
+
   const payload = {
     data: [
       {
@@ -41,16 +57,7 @@ export default async function handler(req, res) {
         event_time: parseInt(event_time || Date.now() / 1000),
         event_source_url,
         action_source: action_source || 'website',
-        user_data: {
-          em: em ? [hashSHA256(em)] : undefined,
-          ph: ph ? [hashSHA256(ph)] : undefined,
-          fn: fn ? [hashSHA256(fn)] : undefined,
-          ln: ln ? [hashSHA256(ln)] : undefined,
-          fbc: fbc || undefined,
-          fbp: fbp || undefined,
-          client_ip_address: client_ip_address || undefined,
-          client_user_agent: client_user_agent || undefined,
-        },
+        user_data,
       },
     ],
   };
@@ -70,8 +77,12 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ success: true, result });
   } catch (error) {
-    return res.status(500).json({ error: 'Internal server error', details: error.message });
+    return res.status(500).json({
+      error: 'Internal server error',
+      details: error.message,
+    });
   }
 }
+
 
 
