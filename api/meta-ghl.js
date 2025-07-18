@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import crypto from 'crypto';
 
+// Hash function for SHA256
 function hashSHA256(value) {
   return crypto.createHash('sha256').update(value.trim().toLowerCase()).digest('hex');
 }
@@ -10,6 +11,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // Extract body values
   const {
     em,
     ph,
@@ -17,23 +19,26 @@ export default async function handler(req, res) {
     ln,
     fbc,
     fbp,
-    client_ip_address,
-    client_user_agent,
     event_name,
     event_time,
     event_source_url,
     action_source,
   } = req.body.customData || {};
 
-  if (!event_name) {
-    return res.status(400).json({ error: "Missing required field: event_name" });
-  }
-
+  // Meta Pixel ID and Token
   const pixel_id = '1453717848975586';
   const access_token = 'EAAUQrscohwYBO3KfUYftAXthoAWSh2xur5y5MvK3LXcGCEwhJfrmDjmlmUTijmSdMQSa00tewd363ZCdTFZA47Sl8kzpPrlOsCZAHr4tsXba87gq62of0cQ6ZAJIRtUP8QxWCMg8cJ667enKMbVqhqChNgZCNH5EZBmkjzPdwNADhQv1md40wEFiCB5r8ZCqKWHTwZDZD';
 
-  const url = `https://graph.facebook.com/v19.0/${pixel_id}/events?access_token=${access_token}`;
+  // Validate required fields
+  if (!event_name) {
+    return res.status(400).json({ error: 'Missing required field: event_name' });
+  }
 
+  // Automatically extract IP and User Agent
+  const client_ip_address = req.headers['x-forwarded-for']?.split(',')[0] || req.socket?.remoteAddress;
+  const client_user_agent = req.headers['user-agent'];
+
+  // Construct user_data object
   const user_data = {};
   if (em) user_data.em = [hashSHA256(em)];
   if (ph) user_data.ph = [hashSHA256(ph)];
@@ -50,6 +55,7 @@ export default async function handler(req, res) {
     });
   }
 
+  // Final payload
   const payload = {
     data: [
       {
@@ -61,6 +67,9 @@ export default async function handler(req, res) {
       },
     ],
   };
+
+  // Send to Meta CAPI
+  const url = `https://graph.facebook.com/v19.0/${pixel_id}/events?access_token=${access_token}`;
 
   try {
     const response = await fetch(url, {
