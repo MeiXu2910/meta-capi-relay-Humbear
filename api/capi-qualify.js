@@ -1,4 +1,4 @@
-// /api/capi-qualify.js
+// /api/capi-qualify.js  —— Data Set 版本 (HIPAA 安全)
 import crypto from 'crypto';
 
 function hashSHA256(value) {
@@ -13,12 +13,8 @@ export default async function handler(req, res) {
   const body = req.body?.customData || req.body || {};
 
   const {
-    em,
-    ph,
-    fn,
-    ln,
-    fbc,
-    fbp,
+    em, ph, fn, ln,
+    fbc, fbp,
     event_name,
     event_time,
     event_source_url,
@@ -28,6 +24,7 @@ export default async function handler(req, res) {
     test_event_code
   } = body;
 
+  // 从请求头获取 IP 和 UA（可提升匹配率）
   const client_ip_address =
     req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
     req.connection?.remoteAddress ||
@@ -38,10 +35,18 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required field: event_name' });
   }
 
-  const pixel_id = process.env.META_PIXEL_ID || 'REPLACE_WITH_PIXEL_ID';
-  const access_token = process.env.META_ACCESS_TOKEN || 'REPLACE_WITH_ACCESS_TOKEN';
+  // ✅ 用 Data Set，而不是 Pixel
+  const dataset_id   = process.env.META_DATASET_ID;
+  const access_token = process.env.META_ACCESS_TOKEN;
 
-  const url = `https://graph.facebook.com/v19.0/${pixel_id}/events?access_token=${access_token}`;
+  if (!dataset_id || !access_token) {
+    return res.status(500).json({
+      error: 'Server config error: META_DATASET_ID or META_ACCESS_TOKEN is missing'
+    });
+  }
+
+  // ✅ Data Set 的 Endpoint
+  const url = `https://graph.facebook.com/v19.0/${dataset_id}/events?access_token=${access_token}`;
 
   const user_data = {};
   if (em) user_data.em = [hashSHA256(em)];
@@ -62,7 +67,7 @@ export default async function handler(req, res) {
   const event = {
     event_name,
     event_time: parseInt(event_time || Date.now() / 1000, 10),
-    action_source: action_source || 'system_generated',
+    action_source: action_source || 'website',
     user_data
   };
 
@@ -81,12 +86,19 @@ export default async function handler(req, res) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
+
     const result = await response.json();
+
     if (!response.ok) {
       return res.status(response.status).json({ error: result });
     }
+
     return res.status(200).json({ success: true, result });
   } catch (error) {
-    return res.status(500).json({ error: 'Internal server error', details: error.message });
+    return res.status(500).json({
+      error: 'Internal server error',
+      details: error.message,
+    });
   }
 }
+
